@@ -1,7 +1,8 @@
 import requests
+import os
 from datetime import datetime
 
-API_KEY = "C74VZB-RXBEUV-RY7F7V-5R6H"  # keep your real key here
+API_KEY = os.environ.get("N2YO_API_KEY") # keep your real key here
 
 def get_satellites():
     url = f"https://api.n2yo.com/rest/v1/satellite/above/48.8566/2.3522/0/90/18/&apiKey={API_KEY}"
