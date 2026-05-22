@@ -22,3 +22,8 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t satping .
+
+      - name: Run SatPing
+        env:
+          N2YO_API_KEY: ${{ secrets.N2YO_API_KEY }}
+        run: docker run -e N2YO_API_KEY=$N2YO_API_KEY satping
