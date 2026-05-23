@@ -1,14 +1,13 @@
 ---
-- name: Configure SatPing server
+- name: Configure and run SatPing server
   hosts: satping
   become: yes
 
-  tasks:
-    - name: Update all packages
-      dnf:
-        name: "*"
-        state: latest
+  vars:
+    ecr_image: "439638384547.dkr.ecr.eu-west-3.amazonaws.com/satping:latest"
+    aws_region: "eu-west-3"
 
+  tasks:
     - name: Install Docker
       dnf:
         name: docker
@@ -20,8 +19,26 @@
         state: started
         enabled: yes
 
-    - name: Add ec2-user to docker group
-      user:
-        name: ec2-user
-        groups: docker
-        append: yes
+    - name: Install AWS CLI
+      dnf:
+        name: awscli
+        state: present
+
+    - name: Login to ECR
+      shell: |
+        aws ecr get-login-password --region {{ aws_region }} | docker login --username AWS --password-stdin 439638384547.dkr.ecr.eu-west-3.amazonaws.com
+      environment:
+        AWS_DEFAULT_REGION: "{{ aws_region }}"
+        AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"
+
+    - name: Pull SatPing image from ECR
+      shell: docker pull {{ ecr_image }}
+
+    - name: Run SatPing container
+      shell: |
+        docker stop satping || true
+        docker rm satping || true
+        docker run -d --name satping \
+          -e N2YO_API_KEY={{ n2yo_api_key }} \
+          {{ ecr_image }}
