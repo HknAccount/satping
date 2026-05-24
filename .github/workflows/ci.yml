@@ -23,7 +23,11 @@ jobs:
       - name: Build Docker image
         run: docker build -t satping .
 
-      - name: Run SatPing
+      - name: Test Docker image starts correctly
         env:
           N2YO_API_KEY: ${{ secrets.N2YO_API_KEY }}
-        run: docker run -e N2YO_API_KEY=$N2YO_API_KEY satping
+        run: |
+          docker run -d --name satping -e N2YO_API_KEY=$N2YO_API_KEY satping
+          sleep 15
+          docker logs satping
+          docker stop satping
